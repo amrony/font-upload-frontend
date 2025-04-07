@@ -3,17 +3,15 @@ import Table from 'react-bootstrap/Table';
 import axios from "axios";
 import Swal from 'sweetalert2';
 
+const FontGroupTable = ({data, setFonts, refreshFonts}) => {
 
-
-const CustomTable = ({data, setFonts, refreshFonts}) => {
-
-    const handleDelete = async (fontId) => {
-        console.log("fontId", fontId);
+    const handleDelete = async (fontGroupId) => {
+        console.log("fontId", fontGroupId);
         try {
             // Show confirmation modal
             Swal.fire({
                 title: "Are you sure?",
-                text: "You want to delete this font?",
+                text: "You want to delete this font group?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
@@ -22,19 +20,19 @@ const CustomTable = ({data, setFonts, refreshFonts}) => {
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     // Make the API request to delete the font
-                    const response = await axios.post('http://localhost/font-group-system-backend/delete-font', 
+                    const response = await axios.post('http://localhost/font-group-system-backend/delete-font-group', 
                     { 
-                        font_id: fontId 
+                        font_group_id: fontGroupId 
                     }, 
                     {
                         headers: {
-                            'Content-Type': 'application/json' // Ensure JSON content type is set
+                            'Content-Type': 'application/json' 
                         }
                     });
     
                     if (response.data.status === 'success') {
-                        setFonts((prevData) => prevData.filter((item) => item.id !== fontId));
-                        refreshFonts(); 
+                        // setFonts((prevData) => prevData.filter((item) => item.id !== fontGroupId));
+                        // refreshFonts(); 
                         Swal.fire({
                             text: "Font Deleted Successfully",
                             icon: "success"
@@ -66,8 +64,9 @@ const CustomTable = ({data, setFonts, refreshFonts}) => {
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Font Name</th>
-                        <th>Preview</th>
+                        <th>Name</th>
+                        <th>Fonts</th>
+                        <th>Count</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -76,25 +75,20 @@ const CustomTable = ({data, setFonts, refreshFonts}) => {
                         data?.map((item, index) => (
                             <tr key={index}>
                                 <td>{index + 1}</td>
-                                <td>{item.font_name}</td>
+                                <td>{item.group_title}</td>
                                 <td>
-                                    <div>
-                                        <style>
-                                            {`
-                                                @font-face {
-                                                    font-family: '${item.font_name}';
-                                                    src: url('http://localhost/font-group-system-backend/uploads/${item.file_path}') format('truetype');
-                                                }
-                                                .font-preview-${index} {
-                                                    font-family: '${item.font_name}';
-                                                }
-                                            `}
-                                        </style>
-                                        <p className={`font-preview-${index}`}> {item.font_name}</p>
-                                    </div>
+                                    {item.fonts.map((font, index) => (
+                                        <div key={index}>
+                                            {font.name}
+                                        </div>
+                                    ))}
                                 </td>
                                 <td>
-                                    <button onClick={() => handleDelete(item.id)}>Delete</button>
+                                    {item.fonts.length}
+                                </td>
+                                
+                                <td>
+                                    <button onClick={() => handleDelete(item.group_id)}>Delete</button>
                                 </td>
                             </tr>
                         ))
@@ -105,4 +99,4 @@ const CustomTable = ({data, setFonts, refreshFonts}) => {
     );
 };
 
-export default CustomTable;
+export default FontGroupTable;

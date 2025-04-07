@@ -30,7 +30,7 @@ function CustomModal({ show, setShow, refreshFonts }) {
   
     try {
       setUploading(true);
-      const response = await axios.post('http://localhost/font-group-system/upload-font', formData, {
+      const response = await axios.post('http://localhost/font-group-system-backend/upload-font', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',  // Ensure the content-type is set for file uploads
         },

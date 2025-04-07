@@ -24,6 +24,11 @@ const Sidebar = () => {
             <NavLink exact to="/" activeClassName="activeClicked">
               <CDBSidebarMenuItem icon="columns">Font List</CDBSidebarMenuItem>
             </NavLink>
+
+            <NavLink exact to="/font-group" activeClassName="activeClicked">
+              <CDBSidebarMenuItem icon="columns">Font Group List</CDBSidebarMenuItem>
+            </NavLink>
+
           </CDBSidebarMenu>
         </CDBSidebarContent>
 

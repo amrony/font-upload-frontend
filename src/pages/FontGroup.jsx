@@ -4,66 +4,61 @@ import CustomModal from "../component/CustomModal";
 import { Button } from "react-bootstrap";
 import axios from "axios";
 import CustomTable from "../component/CustomTable";
+import FontGroupModal from "../component/FontGroupModal";
+import FontGroupTable from "../component/FontGroupTable";
 
-const Home = () => {
-    const [fonts, setFonts] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+const FontGroup = () => {
     const [show, setShow] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [fontGroup, setFontGroup] = useState([]);
 
     useEffect(() => {
         fetchFonts();
     }, []);
 
-
-
-
     const fetchFonts = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost/font-group-system-backend/get-fonts');
+            const response = await axios.get('http://localhost/font-group-system-backend/get-font-groups');
 
             if (response?.data?.status === 'success') {
-                setFonts(response?.data?.data);
+                setFontGroup(JSON.parse(response?.data?.data));
             } else {
-                setError('Failed to fetch fonts');
+                console.log("Failed to fetch fonts")
             }
         } catch (err) {
-            setError('An error occurred while fetching fonts');
+            console.log(err);
         } finally {
             setLoading(false);
         }
     };
 
-    if (loading) {
-        return <div>Loading fonts...</div>;
-    }
+    console.log("fontGroup::", fontGroup);
 
     return (
         <DashboardLayout>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px' }}>
-                <h1>Font List</h1>
+                <h1>Font Group List</h1>
 
-                <Button onClick={() => setShow(true)}>Add Font</Button>
+                <Button onClick={() => setShow(true)}>Add Font Group</Button>
             </div>
 
             <hr />
             
-            <CustomModal
+            <FontGroupModal
                 show={show}
                 setShow={setShow}
-                refreshFonts={fetchFonts}  
-                setFonts={setFonts}
             />
+
             <div className="">
-                <CustomTable 
-                    data={fonts} 
-                    setFonts={setFonts} 
-                    refreshFonts={fetchFonts}
+                <FontGroupTable 
+                    data={fontGroup} 
+                    // setFonts={setFonts} 
+                    // refreshFonts={fetchFonts}
                 />
             </div>
         </DashboardLayout>
     );
 };
 
-export default Home;
+export default FontGroup;
