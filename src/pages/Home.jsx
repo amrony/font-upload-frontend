@@ -1,64 +1,43 @@
 import { useEffect, useState } from "react";
-import DataTable from "../component/Datatable";
 import DashboardLayout from "../component/HOC/DashboardLayout";
-import { CDBCard, CDBCardBody, CDBDataTable, CDBContainer } from 'cdbreact';
 import CustomModal from "../component/CustomModal";
 import { Button } from "react-bootstrap";
 import axios from "axios";
+import CustomTable from "../component/CustomTable";
 
 const Home = () => {
-
+    const [fonts, setFonts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [show, setShow] = useState(false);
-    const [tableData, setTableData] = useState([]);
 
-    
+    useEffect(() => {
+        fetchFonts();
+    }, []);
 
-    const data = () => {
-        return {
-            columns: [
-                {
-                label: 'Font Name',
-                field: 'name',
-                width: 150,
-                attributes: {
-                    'aria-controls': 'DataTable',
-                    'aria-label': 'Name',
-                },
-                },
-                {
-                label: 'Preview',
-                field: 'preview',
-                width: 270,
-                },
 
-                {
-                label: 'Actions',
-                field: 'actions',
-                sort: 'asc',
-                width: 100,
 
-                    getActions: (data) => {
-                        return (
-                            <>
-                                <button>Delete</button>
-                            </>
-                        )
-                    }
 
-                }
-            ],
-            
-            rows: tableData.map((item) => ({
-                ...item,
-                actions: (
-                    <>
-                        <button>Delete</button>
-                    </>
-                )
-            }))
-        };
+    const fetchFonts = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get('http://localhost/font-group-system/get-fonts');
+
+            if (response?.data?.status === 'success') {
+                setFonts(response?.data?.data);
+            } else {
+                setError('Failed to fetch fonts');
+            }
+        } catch (err) {
+            setError('An error occurred while fetching fonts');
+        } finally {
+            setLoading(false);
+        }
     };
-    
+
+    if (loading) {
+        return <div>Loading fonts...</div>;
+    }
 
     return (
         <DashboardLayout>
@@ -71,14 +50,18 @@ const Home = () => {
             <CustomModal
                 show={show}
                 setShow={setShow}
+                refreshFonts={fetchFonts}  
+                setFonts={setFonts}
             />
             <div className="">
-                <DataTable
-                    data={data}
+                <CustomTable 
+                    data={fonts} 
+                    setFonts={setFonts} 
+                    refreshFonts={fetchFonts}
                 />
             </div>
         </DashboardLayout>
-    )
-}
+    );
+};
 
 export default Home;
