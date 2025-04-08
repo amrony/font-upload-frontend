@@ -6,16 +6,16 @@ import Row from 'react-bootstrap/Row';
 import axios from "axios";
 import Swal from 'sweetalert2'; 
 
-function FontGroupModal({ show, setShow }) {
+function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refreshFonts, isEdit }) {
  
     const handleClose = () => {
         setShow(false);
     };
-    const [groupTitle, setGroupTitle] = useState('');
+
     const [loading, setLoading] = useState(false);
-    const [fonts, setFonts] = useState([
-        { id: 0, name: '', font_id: '', size: 0 },
-    ]);
+    // const [fonts, setFonts] = useState([
+    //     { id: 0, name: '', font_id: '', size: 0 },
+    // ]);
 
     const [fontData, setFontData] = useState([]);
 
@@ -47,11 +47,13 @@ function FontGroupModal({ show, setShow }) {
             { id: prevFonts.length, name: '', font_id: '', size: 0 } 
         ]);
     };
+
+    console.log("fonts:::", fonts);
     
 
-    const removeRow = (id) => {
+    const removeRow = (key) => {
         if (fonts.length === 1) return; 
-        setFonts(fonts.filter((font, index) => index !== id)); // Remove the row by ID
+        setFonts(fonts.filter((font, index) => index !== key));
     };
 
 
@@ -68,10 +70,8 @@ function FontGroupModal({ show, setShow }) {
         try {
             const data = {
                 fonts: fonts,
-                group_title: groupTitle,
+                group_title: group?.groupTitle,
             }
-
-            console.log("data", data);
 
             const response = await axios.post('http://localhost/font-group-system-backend/create-font-group', data);
     
@@ -83,8 +83,9 @@ function FontGroupModal({ show, setShow }) {
                     font_id: '', 
                     size: 0 }]
                 ); 
-                setGroupTitle('');
+                setGroup({ id: 0, groupTitle: '' });
                 setShow(false); // Close modal
+                refreshFonts();
                 Swal.fire("Success", "Font group created successfully!", "success");
             } else {
                 Swal.fire("Error", response?.data?.message || "Failed to create font group.", "error");
@@ -94,8 +95,35 @@ function FontGroupModal({ show, setShow }) {
             Swal.fire("Error", "Something went wrong!", "error");
         }
     };
+
+    console.log("group", group);
+
+    const handleUpdate = async () => {
+        try {
+            const data = {
+                fonts: fonts,
+                group_id: group?.id,
+                group_title: group?.groupTitle,
+            }
+
+            console.log("data", data);
+
+            const response = await axios.post('http://localhost/font-group-system-backend/update-font-group', data);
+
+            console.log("update response:::", response);
     
-    
+            if (response?.data?.status === 'success') {
+                setShow(false); // Close modal
+                refreshFonts();
+                Swal.fire("Success", "Font group updated successfully!", "success");
+            } else {
+                Swal.fire("Error", response?.data?.message || "Failed to update font group.", "error");
+            }
+        } catch (error) {
+            console.log(error);
+            Swal.fire("Error", "Something went wrong!", "error");
+        }
+    }
 
     return (
         <Modal show={show} onHide={handleClose} size="xl">
@@ -104,11 +132,17 @@ function FontGroupModal({ show, setShow }) {
             <Modal.Body>
                 <div className="card">
                     <div className="card-header bg-primary text-white">
-                        <h3> Create Font Group</h3>
-                        </div>
+                        {
+                            isEdit ? (
+                                <h3> Update Font Group</h3>
+                            ) : (
+                                <h3> Create Font Group</h3>
+                            )
+                        }
+                    </div>
                         <div className="card-body">
                             <Form.Group className="mb-3">
-                                <Form.Control type="text" placeholder="Group Title"  value={groupTitle}  onChange={(e) => setGroupTitle(e.target.value)} />
+                                <Form.Control type="text" placeholder="Group Title"  value={group?.groupTitle}  onChange={(e) => setGroup({ ...group, groupTitle: e.target.value })} />
                             </Form.Group>
                             <table className="table table-bordered">
                                 <thead>
@@ -157,7 +191,7 @@ function FontGroupModal({ show, setShow }) {
                                     <td>
                                         <button 
                                             className="btn btn-outline-danger"
-                                            onClick={() => removeRow(font.id)}
+                                            onClick={() => removeRow(index)}
                                         >
                                             X
                                         </button>
@@ -171,9 +205,17 @@ function FontGroupModal({ show, setShow }) {
                             <button className="btn btn-primary" onClick={addRow}>
                                 Add Row
                             </button>
-                            <button className="btn btn-success" onClick={handleSubmit}>
-                                Create
-                            </button>
+                            {
+                                isEdit ? (
+                                    <button className="btn btn-success" onClick={handleUpdate}>
+                                        Update
+                                    </button>
+                                ) : (
+                                    <button className="btn btn-success" onClick={handleSubmit}>
+                                        Create
+                                    </button>
+                                )
+                            }
                         </div>
                     </div>
                 </div>

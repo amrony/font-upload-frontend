@@ -3,7 +3,7 @@ import Table from 'react-bootstrap/Table';
 import axios from "axios";
 import Swal from 'sweetalert2';
 
-const FontGroupTable = ({data, setFonts, refreshFonts}) => {
+const FontGroupTable = ({data, refreshFonts, show, setShow, fonts, setFonts, group, setGroup, setIsEdit}) => {
 
     const handleDelete = async (fontGroupId) => {
         console.log("fontId", fontGroupId);
@@ -31,8 +31,7 @@ const FontGroupTable = ({data, setFonts, refreshFonts}) => {
                     });
     
                     if (response.data.status === 'success') {
-                        // setFonts((prevData) => prevData.filter((item) => item.id !== fontGroupId));
-                        // refreshFonts(); 
+                        refreshFonts(); 
                         Swal.fire({
                             text: "Font Deleted Successfully",
                             icon: "success"
@@ -53,6 +52,36 @@ const FontGroupTable = ({data, setFonts, refreshFonts}) => {
                 text: 'An error occurred while deleting the font.',
                 icon: 'error'
             });
+        }
+    };
+
+    const handleEdit = async (fontGroupId) => {
+        setShow(true);
+        setIsEdit(true);
+        await getFontGroupById(fontGroupId);
+
+    }
+
+    const getFontGroupById = async (fontGroupId) => {
+        try {
+            const response = await axios.get('http://localhost/font-group-system-backend/get-font-group-by-id', {
+                params: {
+                    font_group_id: fontGroupId
+                }
+            });
+
+            console.log("response", response);
+    
+            // Handle the response
+            if (response?.data?.status === 'success') {
+                let parseData =  JSON.parse(response?.data?.data);
+                setGroup({ id: parseData?.group_id, groupTitle: parseData?.group_title });
+                setFonts(parseData?.fonts);
+            } else {
+                console.log("Failed to fetch font group:", response?.data?.message);
+            }
+        } catch (err) {
+            console.log("Error fetching font group:", err);
         }
     };
     
@@ -88,6 +117,7 @@ const FontGroupTable = ({data, setFonts, refreshFonts}) => {
                                 </td>
                                 
                                 <td>
+                                    <button onClick={() => handleEdit(item.group_id)}>Edit</button>
                                     <button onClick={() => handleDelete(item.group_id)}>Delete</button>
                                 </td>
                             </tr>
