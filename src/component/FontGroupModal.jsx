@@ -1,27 +1,25 @@
 import { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
-import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
 import axios from "axios";
 import Swal from 'sweetalert2'; 
 
-function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refreshFonts, isEdit }) {
+function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refreshFonts, isEdit, required, setRequired }) {
  
+ 
+    const [loading, setLoading] = useState(false);
+    const [fontData, setFontData] = useState([]);
+
     const handleClose = () => {
         setShow(false);
+        setRequired([]);
     };
-
-    const [loading, setLoading] = useState(false);
-    // const [fonts, setFonts] = useState([
-    //     { id: 0, name: '', font_id: '', size: 0 },
-    // ]);
-
-    const [fontData, setFontData] = useState([]);
 
     useEffect(() => {
         fetchFonts();
     }, []);
+
+    // console.log("fonts", fonts);
 
     const fetchFonts = async () => {
         setLoading(true);
@@ -38,21 +36,17 @@ function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refre
         }
     };
 
-    // console.log("fonts", fonts);
-   
 
     const addRow = () => {
         setFonts(prevFonts => [
             ...prevFonts,
-            { id: prevFonts.length, name: '', font_id: '', size: 0 } 
+            { id: prevFonts.length, name: '', font_id: '' },
         ]);
     };
 
-    console.log("fonts:::", fonts);
-    
 
     const removeRow = (key) => {
-        if (fonts.length === 1) return; 
+        if (fonts.length === 2) return; 
         setFonts(fonts.filter((font, index) => index !== key));
     };
 
@@ -64,64 +58,97 @@ function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refre
         setFonts(updatedFonts);
     };
 
+    const handleValidation = () => {
 
-    const handleSubmit = async () => {
-        
-        try {
-            const data = {
-                fonts: fonts,
-                group_title: group?.groupTitle,
-            }
+        let isValid = true;
+        let invalidIndex = [];
 
-            const response = await axios.post('http://localhost/font-group-system-backend/create-font-group', data);
+        if(!group.groupTitle) {
+            invalidIndex.push({ index: 0, field: 'groupTitle' });
+            isValid = false;
+        }
     
-            if (response?.data?.status === 'success') {
-               
-                setFonts([{ 
-                    id: 0, 
-                    name: '', 
-                    font_id: '', 
-                    size: 0 }]
-                ); 
-                setGroup({ id: 0, groupTitle: '' });
-                setShow(false); // Close modal
-                refreshFonts();
-                Swal.fire("Success", "Font group created successfully!", "success");
-            } else {
-                Swal.fire("Error", response?.data?.message || "Failed to create font group.", "error");
+        fonts.forEach((row, index) => {
+          if (!row.name) {
+            invalidIndex.push({ index, field: 'name' });
+            isValid = false;
+          }
+
+          if (!row.font_id) {
+            invalidIndex.push({ index, field: 'font_id' });
+            isValid = false;
+          }
+        });
+        setRequired(invalidIndex);
+        return isValid;
+    };
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (handleValidation()) {
+            try {
+                const data = {
+                    fonts: fonts,
+                    group_title: group?.groupTitle,
+                }
+    
+                const response = await axios.post('http://localhost/font-group-system-backend/create-font-group', data);
+        
+                if (response?.data?.status === 'success') {
+                   
+                    setFonts([
+                        { id: 0, name: '', font_id: '' },
+                        { id: 1, name: '', font_id: '' },
+                    ]);
+
+                    setGroup({ id: 0, groupTitle: '' });
+                    setShow(false); // Close modal
+                    setRequired([]);
+                    refreshFonts();
+                    Swal.fire("Success", "Font group created successfully!", "success");
+                } else {
+                    Swal.fire("Error", response?.data?.message || "Failed to create font group.", "error");
+                }
+            } catch (error) {
+                console.log(error);
+                Swal.fire("Error", "Something went wrong!", "error");
             }
-        } catch (error) {
-            console.log(error);
-            Swal.fire("Error", "Something went wrong!", "error");
+        } else {
+            console.log("Validation failed required.");
         }
     };
 
-    console.log("group", group);
+    // console.log("group", group);
 
-    const handleUpdate = async () => {
-        try {
-            const data = {
-                fonts: fonts,
-                group_id: group?.id,
-                group_title: group?.groupTitle,
+    const handleUpdate = async (e) => {
+
+        e.preventDefault();
+        if (handleValidation()) {
+            try {
+                const data = {
+                    fonts: fonts,
+                    group_id: group?.id,
+                    group_title: group?.groupTitle,
+                }
+
+                const response = await axios.post('http://localhost/font-group-system-backend/update-font-group', data);
+        
+                if (response?.data?.status === 'success') {
+                    setShow(false);
+                    setRequired([]);
+                    refreshFonts();
+                    Swal.fire("Success", "Font group updated successfully!", "success");
+                } else {
+                    Swal.fire("Error", response?.data?.message || "Failed to update font group.", "error");
+                }
+            } catch (error) {
+                console.log(error);
+                Swal.fire("Error", "Something went wrong!", "error");
             }
-
-            console.log("data", data);
-
-            const response = await axios.post('http://localhost/font-group-system-backend/update-font-group', data);
-
-            console.log("update response:::", response);
-    
-            if (response?.data?.status === 'success') {
-                setShow(false); // Close modal
-                refreshFonts();
-                Swal.fire("Success", "Font group updated successfully!", "success");
-            } else {
-                Swal.fire("Error", response?.data?.message || "Failed to update font group.", "error");
-            }
-        } catch (error) {
-            console.log(error);
-            Swal.fire("Error", "Something went wrong!", "error");
+        } else {
+            console.log("Validation failed required.");
         }
     }
 
@@ -142,14 +169,22 @@ function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refre
                     </div>
                         <div className="card-body">
                             <Form.Group className="mb-3">
-                                <Form.Control type="text" placeholder="Group Title"  value={group?.groupTitle}  onChange={(e) => setGroup({ ...group, groupTitle: e.target.value })} />
+                                <Form.Control 
+                                    type="text" 
+                                    placeholder="Group Title"  
+                                    value={group?.groupTitle}  
+                                    onChange={(e) => setGroup({ ...group, groupTitle: e.target.value })} 
+                                    style={{
+                                        borderColor: required.some(item => item.field === 'groupTitle') ? 'red' : '',
+                                    }}
+                                />
                             </Form.Group>
                             <table className="table table-bordered">
                                 <thead>
                                 <tr>
                                     <th>Font Name</th>
                                     <th>Select a Font</th>
-                                    <th>Specific Size</th>
+                                    {/* <th>Specific Size</th> */}
                                     <th>Action</th>
                                 </tr>
                                 </thead>
@@ -164,15 +199,21 @@ function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refre
                                                 placeholder="name" 
                                                 value={font.name}
                                                 onChange={(e) => handleChange(index, "name", e.target.value)}
+                                                style={{
+                                                    borderColor: required.some(item => item.index === index && item.field === 'name') ? 'red' : '',
+                                                }}
                                             />
                                         </Form.Group>
 
                                     </td>
                                     <td>
                                         <select 
-                                        className="form-select" 
-                                        value={font.font_id}
-                                        onChange={(e) => handleChange(index, 'font_id', e.target.value)}
+                                            className="form-select" 
+                                            value={font.font_id}
+                                            onChange={(e) => handleChange(index, 'font_id', e.target.value)}
+                                            style={{
+                                                borderColor: required.some(item => item.index === index && item.field === 'font_id') ? 'red' : '',
+                                            }}
                                         >
                                         <option value="">Select a font</option>
                                             {fontData.map((item, index) => (
@@ -180,14 +221,14 @@ function FontGroupModal({ show, setShow, fonts, setFonts, group, setGroup, refre
                                             ))}
                                         </select>
                                     </td>
-                                    <td>
+                                    {/* <td>
                                         <input 
                                             type="number" 
                                             className="form-control" 
                                             value={font.size}
                                             onChange={(e) => handleChange(index, "size", e.target.value)}
                                         />
-                                    </td>
+                                    </td> */}
                                     <td>
                                         <button 
                                             className="btn btn-outline-danger"

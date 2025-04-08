@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../component/HOC/DashboardLayout";
-import CustomModal from "../component/CustomModal";
 import { Button } from "react-bootstrap";
 import axios from "axios";
-import CustomTable from "../component/CustomTable";
 import FontGroupModal from "../component/FontGroupModal";
 import FontGroupTable from "../component/FontGroupTable";
 
@@ -12,8 +10,10 @@ const FontGroup = () => {
     const [loading, setLoading] = useState(false);
     const [fontGroup, setFontGroup] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
+    const [required, setRequired] = useState([]);
     const [fonts, setFonts] = useState([
-        { id: 0, name: '', font_id: '', size: 0 },
+        { id: 0, name: '', font_id: '' },
+        { id: 1, name: '', font_id: '' },
     ]);
     const [group, setGroup] = useState({
         id: 0,
@@ -44,7 +44,10 @@ const FontGroup = () => {
 
     const handleAddFontGroup = () => {
         setGroup({ id: 0, groupTitle: '' });
-        setFonts([{ id: 0, name: '', font_id: '', size: 0 }]);
+        setFonts([
+            { id: 0, name: '', font_id: '' },
+            { id: 1, name: '', font_id: '' },
+        ]);
         setShow(true);
         setIsEdit(false);
     };
@@ -67,6 +70,8 @@ const FontGroup = () => {
                 setGroup={setGroup}
                 refreshFonts={fetchFonts}
                 isEdit={isEdit}
+                required={required}
+                setRequired={setRequired}
             />
 
             <div className="">
@@ -80,6 +85,7 @@ const FontGroup = () => {
                     group={group}
                     setGroup={setGroup}
                     setIsEdit={setIsEdit}
+                    setRequired={setRequired}
                 />
             </div>
         </DashboardLayout>
