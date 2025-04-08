@@ -3,10 +3,9 @@ import Table from 'react-bootstrap/Table';
 import axios from "axios";
 import Swal from 'sweetalert2';
 
-const FontGroupTable = ({data, refreshFonts, show, setShow, fonts, setFonts, group, setGroup, setIsEdit}) => {
+const FontGroupTable = ({data, refreshFonts, show, setShow, fonts, setFonts, group, setGroup, setIsEdit, setRequired}) => {
 
     const handleDelete = async (fontGroupId) => {
-        console.log("fontId", fontGroupId);
         try {
             // Show confirmation modal
             Swal.fire({
@@ -33,7 +32,7 @@ const FontGroupTable = ({data, refreshFonts, show, setShow, fonts, setFonts, gro
                     if (response.data.status === 'success') {
                         refreshFonts(); 
                         Swal.fire({
-                            text: "Font Deleted Successfully",
+                            text: "Font Group Deleted Successfully",
                             icon: "success"
                         });
                     } else {
@@ -58,6 +57,7 @@ const FontGroupTable = ({data, refreshFonts, show, setShow, fonts, setFonts, gro
     const handleEdit = async (fontGroupId) => {
         setShow(true);
         setIsEdit(true);
+        setRequired([]);
         await getFontGroupById(fontGroupId);
 
     }
@@ -69,8 +69,6 @@ const FontGroupTable = ({data, refreshFonts, show, setShow, fonts, setFonts, gro
                     font_group_id: fontGroupId
                 }
             });
-
-            console.log("response", response);
     
             // Handle the response
             if (response?.data?.status === 'success') {
@@ -117,8 +115,10 @@ const FontGroupTable = ({data, refreshFonts, show, setShow, fonts, setFonts, gro
                                 </td>
                                 
                                 <td>
-                                    <button onClick={() => handleEdit(item.group_id)}>Edit</button>
-                                    <button onClick={() => handleDelete(item.group_id)}>Delete</button>
+                                    <div style={{display: "flex", gap: "10px"}}>
+                                        <button onClick={() => handleEdit(item.group_id)}>Edit</button>
+                                        <button style={{color: "red"}} onClick={() => handleDelete(item.group_id)}>Delete</button>
+                                    </div>
                                 </td>
                             </tr>
                         ))
